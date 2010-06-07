@@ -1332,6 +1332,24 @@ module EventMachine
     EM::set_heartbeat_interval time.to_f
   end
 
+  # Run the reactor in a new thread. This is useful for using EventMachine
+  # alongside synchronous code. It is recommended to use EM.error_handler to
+  # detect when an exception terminates the reactor thread.
+  def self.spawn_reactor_thread
+    fail "reactor already started" if EM.reactor_running?
+    q = ::Queue.new
+    Thread.new { EM.run { q << nil } }
+    q.pop
+  end
+
+  # Stop the reactor and wait for it to finish. This is the counterpart to #spawn_reactor_thread.
+  def self.kill_reactor_thread
+    fail "reactor is not running" unless EM.reactor_running?
+    fail "current thread is running the reactor" if EM.reactor_thread?
+    EM.stop
+    EM.reactor_thread.join
+  end
+
   private
 
   def self.event_callback conn_binding, opcode, data # :nodoc:

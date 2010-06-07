@@ -38,5 +38,13 @@ class TestRunning < Test::Unit::TestCase
     }
     assert_equal( true, r )
   end
+
+  def test_spawn_reactor_thread
+    assert_equal false, EM.reactor_running?
+    EM.spawn_reactor_thread
+    assert_equal true, EM.reactor_running?
+    EM.kill_reactor_thread
+    assert_equal false, EM.reactor_running?
+  end
 end
 
